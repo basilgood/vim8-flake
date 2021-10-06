@@ -43,17 +43,27 @@
                     augroup END
 
                     " plugins config
-                    " complete
-                    let g:ycm_auto_hover = ""
-                    let g:ycm_complete_in_comments = 1
-                    let g:ycm_seed_identifiers_with_syntax = 1
-                    let g:ycm_key_list_select_completion = ['<Tab>']
-                    let g:ycm_key_list_previous_completion = ['<S-TAB>']
-                    let g:ycm_key_invoke_completion = '<C-x>'
-                    let g:ycm_enable_diagnostic_highlighting = 0
-                    autocmd vimRc FileType javascript,typescript nmap K <plug>(YCMHover)
-                    autocmd vimRc FileType javascript,typescript nnoremap <buffer> <c-]> :YcmCompleter GoTo<CR>
+                    " complete + lsp
+                    packadd! vim-mucomplete
+                    let g:mucomplete#enable_auto_at_startup = 1
+                    let g:mucomplete#always_use_completeopt = 1
+                    let g:lsc_server_commands = {
+                          \ 'javascript': 'typescript-language-server --stdio',
+                          \ 'typescript': 'typescript-language-server --stdio'
+                          \ }
+                    let g:lsc_auto_map = {
+                          \ 'GoToDefinition': 'gd',
+                          \ 'FindReferences': 'gr',
+                          \ 'ShowHover': 'K',
+                          \ 'FindCodeActions': 'ga',
+                          \ 'Completion': 'omnifunc'
+                          \ }
+                    let g:lsc_enable_autocomplete  = v:true
+                    let g:lsc_enable_diagnostics   = v:false
+                    let g:lsc_reference_highlights = v:false
+                    let g:lsc_trace_level          = 'off'
 
+                    " navigation
                     packadd! vim-vinegar
                     let g:netrw_altfile = 1
                     let g:netrw_preview = 1
@@ -142,6 +152,7 @@
                     packadd! vim-repeat
                     packadd! vim-rhubarb
                     packadd! traces.vim
+                    packadd! vim-mergetool
 
                     filetype plugin indent on
 
@@ -343,11 +354,8 @@
                     cnoreabbrev <expr> grep  (getcmdtype() ==# ':' && getcmdline() ==# 'grep')  ? 'Grep'  : 'grep'
                     cnoreabbrev <expr> lgrep (getcmdtype() ==# ':' && getcmdline() ==# 'lgrep') ? 'LGrep' : 'lgrep'
 
-                    augroup quickfix
-                      autocmd!
-                      autocmd QuickFixCmdPost cgetexpr cwindow
-                      autocmd QuickFixCmdPost lgetexpr lwindow
-                    augroup END
+                    autocmd vimRc QuickFixCmdPost cgetexpr cwindow
+                    autocmd vimRc QuickFixCmdPost lgetexpr lwindow
 
                     " sessions
                     if empty(glob('~/.cache/vim/sessions')) > 0
@@ -360,8 +368,15 @@
                     colorscheme seoul256
                   '';
                   packages.pack = with pkgs.vimPlugins; {
-                    start = [ YouCompleteMe vim-gitgutter vim-nix vim-jsx-pretty vim-javascript editorconfig-vim quickfix-reflector-vim ];
-                    opt = [ vinegar fzf-vim ale targets-vim vim-highlightedyank commentary surround repeat fugitive rhubarb traces-vim vim-cool vim-asterisk goyo-vim undotree seoul256-vim ];
+                    start = [
+                      vim-lsc vim-gitgutter vim-nix vim-jsx-pretty
+                      vim-javascript editorconfig-vim quickfix-reflector-vim
+                    ];
+                    opt = [
+                      vinegar fzf-vim ale vim-mucomplete targets-vim
+                      vim-highlightedyank commentary surround repeat vim-mergetool
+                      fugitive rhubarb traces-vim vim-cool vim-asterisk goyo-vim undotree seoul256-vim
+                    ];
                   };
                 };
               })
