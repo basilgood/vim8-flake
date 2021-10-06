@@ -146,6 +146,8 @@
                     packadd! vim-fugitive
                     nnoremap <leader>g :G <bar> Goyo<cr>
 
+                    " packs
+                    packadd! matchit
                     packadd! targets.vim
                     packadd! vim-commentary
                     packadd! vim-surround
@@ -193,8 +195,8 @@
                     set grepprg=rg\ --vimgrep
                     set completeopt-=preview
                     set completeopt+=menuone,noselect,noinsert
-                    " setg omnifunc=syntaxcomplete#Complete
-                    " setg completefunc=syntaxcomplete#Complete
+                    setg omnifunc=syntaxcomplete#Complete
+                    setg completefunc=syntaxcomplete#Complete
                     set pumheight=10
                     set diffopt+=context:3,indent-heuristic,algorithm:patience
                     set list
@@ -319,6 +321,9 @@
                           \   call mkdir(expand('%:h', v:true), 'p') |
                           \ endif
 
+                    " git
+                    autocmd vimRc FileType gitcommit setlocal spell | setlocal textwidth=72 | setlocal colorcolumn=+1
+
                     " filetypes
                     let g:markdown_fenced_languages = ['vim', 'ruby', 'html', 'javascript', 'css', 'bash=sh', 'sh']
                     autocmd vimRc BufReadPre *.md,*.markdown setlocal conceallevel=2 concealcursor=n
@@ -356,6 +361,24 @@
 
                     autocmd vimRc QuickFixCmdPost cgetexpr cwindow
                     autocmd vimRc QuickFixCmdPost lgetexpr lwindow
+
+                    " commit messages
+                    let s:git_commit_prefix_candidates = [
+                        \ {'word': 'feat: ', 'menu': 'Production - adding a new feature'},
+                        \ {'word': 'fix: ', 'menu': 'Production - bug fixes'},
+                        \ {'word': 'build: ', 'menu': 'Build related changes such as updating build tasks, package manager configs, etc'},
+                        \ {'word': 'style: ', 'menu': 'Development - white-space, formatting, missing semi-colons, etc'},
+                        \ {'word': 'refactor: ', 'menu': 'Development - removing redundant code, simplifying the code, renaming variables, etc'},
+                        \ {'word': 'perf: ', 'menu': 'Production - changes such as performance improvements'},
+                        \ {'word': 'test: ', 'menu': 'Refactoring existing tests or adding new tests'},
+                        \ {'word': 'docs: ', 'menu': 'Documentation related changes'}]
+                    function! GitcommitPrefixCandidates()
+                      if empty(getline(1))
+                        call complete(col('.'), s:git_commit_prefix_candidates)
+                      endif
+                      return '''
+                    endfunc
+                    autocmd vimRc FileType g*commit startinsert | call feedkeys("\<C-R>=GitcommitPrefixCandidates()\<CR>")
 
                     " sessions
                     if empty(glob('~/.cache/vim/sessions')) > 0
