@@ -155,6 +155,7 @@
                     packadd! vim-rhubarb
                     packadd! traces.vim
                     packadd! vim-mergetool
+                    packadd! vim-qf
 
                     filetype plugin indent on
 
@@ -380,6 +381,43 @@
                     endfunc
                     autocmd vimRc FileType g*commit startinsert | call feedkeys("\<C-R>=GitcommitPrefixCandidates()\<CR>")
 
+                    " altscreen (fcpg)
+                    function! UnsetAltScreen()
+                    let g:altscreen_save_t_ti = &t_ti
+                    let g:altscreen_save_t_te = &t_te
+                    if get(g:, 'altscreen_reset', 1)
+                      let &t_ti = ""
+                      let &t_te = ""
+                    else
+                      let &t_ti = substitute(&t_ti, '\e\[?1049[hl]', ''', ''')
+                      let &t_te = substitute(&t_te, '\e\[?1049[hl]', ''', ''')
+                    endif
+                  endfun
+
+                  function! SetAltScreen()
+                    let &t_ti = g:altscreen_save_t_ti
+                    let &t_te = g:altscreen_save_t_te
+                  endfun
+
+                  function! AltScreenControlZ()
+                    try
+                      call SetAltScreen()
+                      if exists('#AltScreen#User#suspend')
+                        doauto <nomodeline> AltScreen User suspend
+                      endif
+                      suspend!
+                    finally
+                      if exists('#AltScreen#User#resume')
+                        doauto <nomodeline> AltScreen User resume
+                      endif
+                      call UnsetAltScreen()
+                    endtry
+                  endfun
+
+                  autocmd vimRc VimEnter *  call UnsetAltScreen()
+                  autocmd vimRc VimLeave *  call SetAltScreen()
+                  silent! noremap <unique> <silent>  <C-z>  :<C-u>call AltScreenControlZ()<cr>
+
                     " sessions
                     if empty(glob('~/.cache/vim/sessions')) > 0
                       call mkdir(expand('~/.cache/vim/sessions'), 'p')
@@ -393,10 +431,10 @@
                   packages.pack = with pkgs.vimPlugins; {
                     start = [
                       vim-lsc vim-gitgutter vim-nix vim-jsx-pretty
-                      vim-javascript editorconfig-vim quickfix-reflector-vim
+                      vim-javascript editorconfig-vim
                     ];
                     opt = [
-                      vinegar fzf-vim ale vim-mucomplete targets-vim
+                      vinegar fzf-vim ale vim-mucomplete targets-vim vim-qf
                       vim-highlightedyank commentary surround repeat vim-mergetool
                       fugitive rhubarb traces-vim vim-cool vim-asterisk goyo-vim undotree seoul256-vim
                     ];
