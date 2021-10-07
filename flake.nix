@@ -146,6 +146,10 @@
                     packadd! vim-fugitive
                     nnoremap <leader>g :G <bar> Goyo<cr>
 
+                    " highlightedyank
+                    packadd! vim-highlightedyank
+                    let g:highlightedyank_highlight_duration = 250
+
                     " packs
                     packadd! matchit
                     packadd! targets.vim
